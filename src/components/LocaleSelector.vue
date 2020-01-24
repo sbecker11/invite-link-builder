@@ -1,10 +1,11 @@
 /* eslint-disable no-console */
 <template>
-    <v-container style="border:1px solid black;">
+    <v-container id="locale-selector" style="padding:0">
         <v-row>
-            <v-col cols="6" pr-1>
-                <div class="font-weight-thin">{{marketSelectorLabel}}</div>
+            <v-col cols="6" id="market-col">
+                <div>{{marketSelectorLabel}}</div>
                 <v-select 
+                id="market-selector"
                 v-model="market"
                 :items="markets"
                 menu-props="auto"
@@ -15,7 +16,7 @@
                 dense
                 ></v-select>
             </v-col>
-            <v-col cols="6" pl-1>
+            <v-col cols="6" id="language-col">
                 <div>{{languageSelectorLabel}}</div>
                 <v-select 
                 id="language-selector"
@@ -292,5 +293,15 @@
 </script>
 
 <style lang="scss" scoped>
+#market-col {
+    padding-right: 3px;
+    font-weight: 100;
+    font-family: Arial;
+}
+#language-col {
+    padding-left: 3px;
+    font-weight: 100;
+    font-family: Arial;
+}
 
 </style>
