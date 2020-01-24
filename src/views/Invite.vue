@@ -5,8 +5,8 @@
             <LocaleSelector
                 v-model="locale"
                 defaultMarket="United States"
-                marketSelectorLabel="Market"
-                marketSelectorPlaceholder="Select Market"
+                countrySelectorLabel="Market"
+                countrySelectorPlaceholder="Select Market"
                 languageSelectorLabel="Language of Recipient"
                 languageSelectorPlaceholder="Select Language"
             />
