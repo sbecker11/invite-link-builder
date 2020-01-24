@@ -4,6 +4,7 @@
             <h1 class="text-center">Create Invitation</h1>
             <LocaleSelector
                 v-model="locale"
+                defaultMarket="United States"
                 marketSelectorLabel="Market"
                 marketSelectorPlaceholder="Select Market"
                 languageSelectorLabel="Language of Recipient"

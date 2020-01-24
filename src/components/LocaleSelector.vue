@@ -22,13 +22,13 @@
                 v-model="language"
                 :items="languages"
                 menu-props="auto"
+                :disabled="languageSelectorDisabled ? true : false"
+                :append-icon="languageSelectorDisabled ? '' : undefined"
                 :label="languageSelectorPlaceholder"
                 hide-details
                 single-line
                 outlined
                 dense
-                :disabled="language_selector_disabled ? true : false"
-                :append-icon="language_selector_disabled ? '' : undefined"
                 ></v-select>
             </v-col>
         </v-row>
@@ -37,15 +37,16 @@
 
 <script>
     export default {
-        mounted() {
-            this.initMarketLanguageTables();
-        },
         props: {
             // reactive property
             // parent uses <LocaleSelector v-model="locale"/> and locale in data 
             value: {
                 type: Object,
-                default: {}
+                default: function() {}
+            },
+            defaultMarket: {
+                type: String,
+                default: 'United States'
             },
             marketSelectorLabel: {
                 type: String,
@@ -66,65 +67,81 @@
         },
         data: function() {
             return {
-                // these are initialized in initMarketLanguageTables
-                markets: undefined,
-                market_codes: undefined,
-                language_codes: undefined,
+                market_codes: this.getMarketCodes(),
+                language_codes: this.getLanguageCodes(),
+                market_languages: this.getMarketLanguages(),
+                markets: this.getMarkets(),
 
-                // this.market is initialized in initMarketLanguageTables
-                market: "",
-
-                // this.language is re-initialized when this.market changes
-                language: ""
+                // these are updated in watchers
+                market: this.defaultMarket,
+                languages: this.getDefaultLanguages(),
+                language: this.getDefaultLanguage(),
+                locale: this.getDefaultLocale()
             }
         },
         methods: {
-            initMarketLanguageTables() {
-
-                this.language_codes = new Map();
-                this.language_codes.set('Spanish', 'es');
-                this.language_codes.set('English', 'en');
-                this.language_codes.set('Chinese', 'zh');
-                this.language_codes.set('French', 'fr');
-                this.language_codes.set('Vietnamese', 'vi');
-                let items = Array.from(this.language_codes.keys());
-                console.log('initMarketLanguageTables() language_codes.length:', items.length);
-
-                this.market_codes = new Map();
-                this.market_codes.set('United States', 'US');
-                this.market_codes.set('Canada','CA');
-                this.market_codes.set('French Polynesia', 'PF');
-                this.market_codes.set('Phillipines', 'PH');
-                items = Array.from(this.market_codes.keys());
-                console.log('initMarketLanguageTables() market_codes.length:', items.length);
-
-                this.market_languages = new Map();
-                this.market_languages.set("United States", ['Spanish', 'Chinese', 'Vietnamese', 'English']);
-                this.market_languages.set("Canada", ['Chinese', 'French', 'English']);
-                this.market_languages.set("French Polynesia", ['French']);
-                this.market_languages.set("Phillipines", ['English']);
-                items = Array.from(this.market_languages.keys());
-                console.log('initMarketLanguageTables() market_languages.length:', items.length);
-
-                this.markets = Array.from(this.market_languages.keys());
-                console.log('initMarketLanguageTables() markets.length:', this.markets.length);
-
-                // set market and default_lang from locale property
-                this.market = this.getMarketFromLocale(this.value.locale);
-                console.log('initMarketLanguageTables() market:', this.market);
-
-                // this.languages is recomputed when this.market changes
-
-                // adjust this.language and this.value.local if locale-defined 
-                // language is not found in this.languages for this.market.
-                let default_lang = this.getLanguageFromLocale(this.value.locale);
-                if ( this.languages !== undefined && this.languages.indexOf(default_lang) === -1 ) {
-                    // if default_lang not found in current lenguages
-                    // then set default_lang to first item of languages
-                    default_lang = this.languages[0];
+            getLanguageCodes() {
+                if ( this.language_codes === undefined ) {
+                    let language_codes = new Map();
+                    language_codes.set('Spanish', 'es');
+                    language_codes.set('English', 'en');
+                    language_codes.set('Chinese', 'zh');
+                    language_codes.set('French', 'fr');
+                    language_codes.set('Vietnamese', 'vi');
+                    let items = Array.from(language_codes.keys());
+                    console.log('getLanguageCodes() language_codes.length:', items.length);
+                    this.language_codes = language_codes;
                 }
-                this.language = default_lang;
-                console.log('initMarketLanguageTables() language:', this.language);
+                return this.language_codes;
+            },
+            getMarketCodes() {
+                if ( this.market_codes === undefined ) {
+                    let market_codes = new Map();
+                    market_codes.set('United States', 'US');
+                    market_codes.set('Canada','CA');
+                    market_codes.set('French Polynesia', 'PF');
+                    market_codes.set('Phillipines', 'PH');
+                    let items = Array.from(market_codes.keys());
+                    console.log('getMarketCodes() market_codes.length:', items.length);
+                    this.market_codes = market_codes;
+                }
+                return this.market_codes;
+            },
+            getMarketLanguages() {
+                if ( this.market_languages === undefined ) {
+                    let market_languages = new Map();
+                    market_languages.set("United States", ['Spanish', 'Chinese', 'Vietnamese', 'English']);
+                    market_languages.set("Canada", ['Chinese', 'French', 'English']);
+                    market_languages.set("French Polynesia", ['French']);
+                    market_languages.set("Phillipines", ['English']);
+                    let items = Array.from(market_languages.keys());
+                    console.log('getMarketLanguages() market_languages.length:', items.length);
+                    this.market_languages = market_languages;
+                }
+                return this.market_languages;
+            },
+            getMarkets() {
+                if ( this.markets === undefined ) {
+                    let markets = Array.from(this.getMarketLanguages().keys());
+                    console.log('getMarkets() markets.length:', markets.length);
+                    this.markets = markets;
+                }
+                return this.markets;
+            },
+            getDefaultLanguages() {
+                return this.getLanguagesForMarket(this.defaultMarket);
+            },
+            getDefaultLanguage() {
+                let defaultLanguages = this.getDefaultLanguages();
+                console.log("getDefaultLanguage() defaultLanguages:", defaultLanguages);
+                let defaultLanguage = this.getFirstLanguageForLanguages(defaultLanguages);
+                console.log("getDefaultLanguage() defaultLanguage:", defaultLanguage);
+                return defaultLanguage;
+            },
+            getDefaultLocale() {
+                let defaultLanguage = this.getDefaultLanguage();
+                let defaultLocale = this.getLocaleFromMarketAndLanguage(this.defaultMarket, defaultLanguage);
+                return defaultLocale;
             },
             getFirstKeyWithValue(map, value) {
                 let find_key = undefined;
@@ -166,76 +183,109 @@
                 console.log("getLanguageFromLocale() locale:", locale, " language:", find_language);
                 return find_language;
             },
-            getMarketCode(market) {
-                // return the market_code of the current market
+            getMarketCodeFromMarket(market) {
                 let find_market_code = undefined;
                 if ( market !== undefined ) {
                     find_market_code = this.getValueForKey(this.market_codes, market);
                 }
-                console.log('getMarketCode() market:', market, ' market_code:', find_market_code);
+                console.log('getMarketCodeFromMarket() market:', market, ' market_code:', find_market_code);
                 return find_market_code;
             },
-            getLanguageCode(language) {
-                // return the language_code for the current language
+            getLanguageCodeFromLanguage(language) {
                 let find_language_code = undefined;
                 if ( language !== undefined ) {
                     find_language_code = this.getValueForKey(this.language_codes, language);
                 }
-                console.log('getLanguageCode() language:', language, " language_code:", find_language_code);
+                console.log('getLanguageCodeFromLanguage() language:', language, " language_code:", find_language_code);
                 return find_language_code;
             },
-            updateLocale() {
-                let current_locale = undefined;
-                let language_code = this.getLanguageCode(this.language);
-                let market_code = this.getMarketCode(this.market);
-                if ((language_code !== undefined) && (market_code !== undefined)) {
-                    current_locale = `${language_code}_${market_code}`;
+            getLanguagesForMarket(market) {
+                console.log("getLanguagesForMarket() market:", market);
+                let new_languages = undefined;
+                if ( this.market_languages !== undefined ) {
+                    new_languages = this.getMarketLanguages().get(market);
                 }
-                if ( (current_locale !== undefined) && (current_locale !== this.value.locale)) {
-                    this.value = {
-                        locale: current_locale,
+                // console.log("getLanguagesForMarket() market:", market, " languages:", new_languages);
+                return new_languages;
+            },
+            getFirstLanguageForLanguages(languages) {
+                let first_language = undefined;
+                if ( languages !== undefined ) {
+                    first_language = languages[0];
+                }
+                console.log("getFirstLanguageForLanguages() languages:", languages, " first_language:", first_language);
+                return first_language;
+            },
+            getLocaleFromMarketAndLanguage(market, language) {
+                let new_locale = undefined;
+                let market_code = this.getMarketCodeFromMarket(market);
+                let language_code = this.getLanguageCodeFromLanguage(language);
+                if ((language_code !== undefined) && (market_code !== undefined)) {
+                    new_locale = `${language_code}_${market_code}`;
+                }
+                console.log("getLocaleFromMarketAndLanguage() market:", market, " language:", language, " locale:", new_locale);
+                return new_locale;
+            },
+            updateValue() {
+                console.log('updateValue()');
+                if ( this.market !== undefined && this.language !== undefined && this.locale !== undefined ) {
+                    let new_value = {
                         market: this.market,
-                        language: this.language
+                        language: this.language,
+                        locale: this.locale
                     };
-                    this.$emit('input', this.value);
+                    if ( this.value !== new_value ) {
+                        this.value = new_value;
+                        console.log("updateValue() emit value:", this.value);
+                        this.$emit('input', this.value);
+                    }
                 }
             }
         },
         watch: {
-            value: function(new_locale) {
-                let new_market = this.getMarketFromLocale(new_locale.locale);
-                if ( new_market !== undefined && this.market !== new_market ) {
-                    this.market = new_market;
-                }
-                let new_language = this.getLanguageFromLocale(new_locale.locale);
-                if ( new_language !== undefined && this.language !== new_language ) {
-                    this.language = new_language;
-                }
+            market: function(newMarket, oldMarket) {
+                console.log('$$$$ watch.marketProp() newMarket:', newMarket, ' oldMarket:', oldMarket);
+
+                this.market = newMarket;
+                console.log('watch.marketProp() this.market:', this.market);
+
+                this.languages = this.getLanguagesForMarket(this.market);
+                console.log('watch.marketProp() languages:', this.languages);
+
+                this.language = this.getFirstLanguageForLanguages(this.languages);
+                console.log('watch.marketProp() language:', this.language);
+
+                this.locale = this.getLocaleFromMarketAndLanguage(this.market, this.language);
+                console.log('watch.marketProp() locale:', this.locale);
+
+                this.updateValue();
             },
-            market: function() {
-                this.updateLocale();
-            },
-            language: function() {
-                this.updateLocale();
+            language: function(newLanguage, oldLanguage) {
+                console.log('$$$$ watch.languageProp() newLanguage:', newLanguage, ' oldLanguage:', oldLanguage);
+
+                this.language = newLanguage;
+                console.log('watch.languageProp() this..language');
+
+                this.locale = this.getLocaleFromMarketAndLanguage(this.market, this.language);
+                console.log('watch.language() locale:', this.locale);
+
+                this.updateValue();
             }
         },
         computed: {
-            languages: function() {
-                // this function is invoked on any change of:
-                // this.market or this.markets
-                // returns the current array of languages for the current market
-                // this.language SHOULD NOT be altered here.
-
-                // lazy initialize this.markets and this.market
-                if ( this.markets === undefined ) {
-                    this.initMarketLanguageTables();
+            languageSelectorDisabled: function() {
+                console.log("computed.languageSelectorDisabled() this.market:", this.market);
+                let disabled = false;
+                let num_languages = 2;
+                let languages = this.getLanguagesForMarket(this.market);
+                if ( languages !== undefined  ) {
+                    num_languages = languages.length;
                 }
-                let new_languages = this.market_languages.get(this.market);
-                console.log("market:", this.market, " languages:", new_languages);
-                return new_languages;
-            },
-            language_selector_disabled: function() {
-                return this.languages !== undefined && this.languages.length == 1;
+                if ( num_languages <= 1 ) {
+                    disabled = true;
+                }
+                console.log("computed.languageSelectorDisabled() num_languages:",  num_languages, " disabled:", disabled);
+                return disabled;
             }
         }
     }
