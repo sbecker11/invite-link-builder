@@ -4,6 +4,10 @@
             <h1 class="text-center">Create Invitation</h1>
             <LocaleSelector
                 v-model="locale"
+                marketSelectorLabel="Market"
+                marketSelectorPlaceholder="Select Market"
+                languageSelectorLabel="Language of Recipient"
+                languageSelectorPlaceholder="Select Language"
             />
             <v-container style="border:1px solid black;">
                 <v-row>
@@ -44,7 +48,7 @@
                             <div class="text-center">
                                 Brand Affiliate invite from<br>
                                 {{sponsor_name}} - {{sponsor_id}}<br>
-                                {{market}} &middot; {{language}}
+                                {{locale.market}} &middot; {{locale.language}}
                             </div>
                             <v-card outlined flat class="mt-2 mb-0" style="padding:1em;">{{current_url}}</v-card>
                             <input type="hidden" id="hidden-url-element" :value="current_url">
@@ -73,14 +77,18 @@ import LocaleSelector from '@/components/LocaleSelector.vue'
 
 export default {
     name: 'invite',
-    components: [
+    components: {
         LocaleSelector
-    ],
+    },
 	data() {
         return {
             sponsor_id: 'US00340640',
             sponsor_name: 'Danielle Anderson',
-            locale: 'en_US',
+            locale: {
+                locale: 'en_US',
+                market: '',
+                language: ''
+            },
             link_type: 'brnd',
             snackbar_visible: false,
             snackbar_text: undefined
@@ -142,7 +150,7 @@ export default {
         current_url: function() {
             if ((this.link_type !== undefined) &&
                 (this.locale !== undefined)) { 
-                return `https://${this.link_type}/${this.sponsor_id}/${this.locale}`;
+                return `https://${this.link_type}/${this.sponsor_id}/${this.locale.locale}`;
             } else {
                 return '';
             }
