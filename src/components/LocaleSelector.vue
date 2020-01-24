@@ -67,12 +67,12 @@
         },
         data: function() {
             return {
+                // these are lazily initialized
                 market_codes: this.getMarketCodes(),
                 language_codes: this.getLanguageCodes(),
                 market_languages: this.getMarketLanguages(),
                 markets: this.getMarkets(),
 
-                // these are updated in watchers
                 market: this.defaultMarket,
                 languages: this.getDefaultLanguages(),
                 language: this.getDefaultLanguage(),
